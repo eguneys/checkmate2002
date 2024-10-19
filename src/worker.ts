@@ -62,17 +62,16 @@ function clear_progress() {
   postMessage({ t: 'progress' })
 }
 
+let filter: string | undefined = undefined
 
-const filter_puzzles = (filter?: string) => {
-  if (!filter) {
-    send_puzzles(puzzles)
-    return
-  }
-  send_puzzles(puzzles.filter(yn_filter(filter)))
+const filter_puzzles = (_filter?: string) => {
+  filter = _filter
+  send_puzzles()
 }
 
-const send_puzzles = (puzzles: Puzzle[]) => {
-  postMessage({ t: 'puzzles', d: puzzles})
+const send_puzzles = () => {
+  let d = filter ? puzzles.filter(yn_filter(filter)) : puzzles
+  postMessage({ t: 'puzzles', d})
 }
 
 onmessage = (e) => {
@@ -86,5 +85,5 @@ onmessage = (e) => {
 
 let puzzles = await fetch_puzzles()
 clear_progress()
-send_puzzles(puzzles)
+send_puzzles()
 

@@ -23,10 +23,24 @@ function WithWorker() {
       <Board fen={selected_fen()}/>
       <Pattern />
       <Puzzles on_selected_fen={set_selected_fen}/>
+
+<Progress/>
   </div>
   </>)
 }
 
+const Progress = () => {
+
+  const { progress } = useContext(MyWorkerContext)!
+
+
+  return (<>
+    <Show when={progress()}>{progress =>
+      <div class='progress'> {progress()[0]}/{progress()[1]} </div>
+    }</Show>
+  </>
+  )
+}
 
 class PuzzleMemo {
 
@@ -71,13 +85,11 @@ class PuzzleMemo {
 
 const Puzzles = (props: { on_selected_fen: (_: string) => void }) => {
 
-  let ctx = useContext(MyWorkerContext)!
-
-  const progress = createMemo(() => ctx.progress())
+  let { puzzles, filter_puzzles } = useContext(MyWorkerContext)!
 
   const [filter, set_filter] = createSignal<string | undefined>()
 
-  const filtered = createMemo(mapArray(() => ctx.puzzles(), PuzzleMemo.create))
+  const filtered = createMemo(mapArray(() => puzzles(), PuzzleMemo.create))
 
   const [i_selected, set_i_selected] = createSignal(0)
 
@@ -90,7 +102,7 @@ const Puzzles = (props: { on_selected_fen: (_: string) => void }) => {
   }))
 
   createEffect(on(filter, f => {
-    ctx.filter_puzzles(f)
+    filter_puzzles(f)
   }))
 
 
@@ -117,9 +129,7 @@ const Puzzles = (props: { on_selected_fen: (_: string) => void }) => {
         }</For>
       }</Show>
       </div>
-      <Show when={progress()}>{progress => 
-        <div class='progress'> {progress()[0]}/{progress()[1]} </div>
-      }</Show>
+
       </div>
   )
 }

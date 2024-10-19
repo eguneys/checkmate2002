@@ -40,7 +40,7 @@ export const MyWorkerProvider = (props: { children: JSX.Element }) => {
         progress,
         puzzles,
         filter_puzzles(filter?: string) {
-            worker.postMessage({ filter })
+            worker.postMessage({ t: 'filter', d: filter })
         }
     }
 
