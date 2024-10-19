@@ -5,3 +5,5 @@ export type Puzzle = {
   tags: string[],
   has_tags: string[]
 }
+
+export type Pattern = { name: string, pattern: string }

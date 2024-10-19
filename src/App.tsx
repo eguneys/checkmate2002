@@ -1,9 +1,10 @@
 import { Color, Key } from 'chessground/types'
 import './App.css'
 import Chessboard from './Chessboard'
-import { createEffect, createMemo, createSignal, For, mapArray, on, Show, Signal, useContext } from 'solid-js'
+import { batch, createEffect, createMemo, createSignal, For, mapArray, on, onMount, Show, useContext } from 'solid-js'
 import { MyWorkerContext, MyWorkerProvider } from './Worker'
-import { Puzzle } from './puzzles'
+import { Pattern, Puzzle } from './puzzles'
+import { makePersistedNamespaced } from './persisted'
 
 function App() {
   return (<>
@@ -21,7 +22,7 @@ function WithWorker() {
   
   <div class='checkmate-2002'>
       <Board fen={selected_fen()}/>
-      <Pattern />
+      <PatternView />
       <Puzzles on_selected_fen={set_selected_fen}/>
 
 <Progress/>
@@ -62,22 +63,12 @@ class PuzzleMemo {
   }
 
   get has_tags() {
-    return this._has_tags[0]()
+    return this.puzzle.has_tags
   }
 
   get all_tags() {
     return [...this.tags, ...this.has_tags]
   }
-
-  add_tag(_: string) {
-    this._has_tags[1]([...this.has_tags.filter(_ => _ !== _), _])
-  }
-
-  remove_tag(_: string) {
-    this._has_tags[1](this.has_tags.filter(_ => _ !== _))
-  }
-
-  _has_tags: Signal<string[]> = createSignal<string[]>([])
 
   private constructor(readonly puzzle: Puzzle) {}
 }
@@ -87,7 +78,7 @@ const Puzzles = (props: { on_selected_fen: (_: string) => void }) => {
 
   let { puzzles, filter_puzzles } = useContext(MyWorkerContext)!
 
-  const [filter, set_filter] = createSignal<string | undefined>()
+  const [filter, set_filter] = makePersistedNamespaced<string | undefined>(undefined, 'filter')
 
   const filtered = createMemo(mapArray(() => puzzles(), PuzzleMemo.create))
 
@@ -115,7 +106,7 @@ const Puzzles = (props: { on_selected_fen: (_: string) => void }) => {
   return (
       <div class='puzzles'>
         <div class='filter'>
-          <input onInput={() => on_filter_change($el_filter.value)} ref={_ => $el_filter = _} type="text" placeholder="Filter y_filter _!_ n_filter"></input>
+          <input value={filter()} onInput={() => on_filter_change($el_filter.value)} ref={_ => $el_filter = _} type="text" placeholder="Filter y_filter _!_ n_filter"></input>
           <span>{filtered().length}/{10000} Positions</span>
         </div>
         <div class='list'>
@@ -134,10 +125,74 @@ const Puzzles = (props: { on_selected_fen: (_: string) => void }) => {
   )
 }
 
-const Pattern = () => {
+
+const PatternView = () => {
+
+  const { set_patterns } = useContext(MyWorkerContext)!
+
+  const default_patterns = [{ name: 'backrank', pattern: "OoOoOoFnFnFnfofofo" }]
+
+  const [saved_patterns, set_saved_patterns] = makePersistedNamespaced<Pattern[]>([], 'patterns')
+  const patterns = createMemo(() => [...default_patterns, ...saved_patterns()])
+
+  const [i_selected_pattern, set_i_selected_pattern] = createSignal(0)
+
+  const selected_pattern = createMemo(() => patterns()[i_selected_pattern()])
+
+  createEffect(on(patterns, ps => {
+    set_patterns(ps)
+  }))
+
+  createEffect(on(selected_pattern, p => {
+    $el_pattern_name.value = p.name
+    $el_pattern.value = p.pattern
+  }))
+
+  const add_pattern = () => {
+    let name = $el_pattern_name.value
+    let pattern = $el_pattern.value
+
+    if (!name || name.length < 3 || !pattern || pattern.length !== 18) {
+      return false
+    }
+
+    if (default_patterns.find(_ => _.name === name)) {
+      name += Math.random().toString(16).slice(2, 4)
+    }
+
+    batch(() => {
+      set_saved_patterns([...saved_patterns().filter(_ => _.name !== name), { name, pattern }])
+      set_i_selected_pattern(patterns().length - 1)
+    })
+  }
+
+  const delete_pattern = () => {
+    let name = $el_pattern_name.value
+    batch(() => {
+      set_saved_patterns([...saved_patterns().filter(_ => _.name !== name)])
+      set_i_selected_pattern(patterns().length - 1)
+    })
+  }
+
+  let $el_pattern_name: HTMLInputElement
+  let $el_pattern: HTMLTextAreaElement
+
   return (
     <div class='pattern'>
-
+      <div class='list'>
+        <For each={patterns()}>{(pattern, i) => 
+          <div onClick={() => set_i_selected_pattern(i())} class={"pattern" + (i_selected_pattern() === i() ? ' active': '')}>
+            <span class='name'>{pattern.name}</span>
+            <span class='value'>{pattern.pattern}</span>
+          </div>
+        }</For>
+      </div>
+      <div class='controls'>
+        <input class="name" ref={_ => $el_pattern_name = _} type="text" placeholder="Pattern Name"/>
+        <textarea ref={_ => $el_pattern = _ } placeholder="OoOoOoFnFnFnfofofo" class="pattern" spellcheck={false} rows={3} cols={6} maxLength={18}/>
+        <button onClick={add_pattern}>Add Pattern</button>
+        <button onClick={delete_pattern} class='delete'>Delete</button>
+      </div>
     </div>
   )
 }

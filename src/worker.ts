@@ -1,6 +1,32 @@
+import { hopefox } from 'hopefox'
 import { Chess, parseUci } from "hopefox"
 import { makeFen, parseFen } from "hopefox/fen"
-import { Puzzle } from "./puzzles"
+import { Pattern, Puzzle } from "./puzzles"
+
+let puzzles: Puzzle[] = []
+let filter: string | undefined = undefined
+let patterns: Pattern[] = []
+
+let dirty_patterns = true
+
+const init = async () => {
+
+  puzzles = await fetch_puzzles()
+  dirty_patterns = true
+  clear_progress()
+  send_puzzles()
+
+
+}
+
+const set_patterns = (ps: Pattern[]) => {
+  patterns = ps
+  dirty_patterns = true
+
+  send_puzzles()
+}
+
+
 
 export const fetch_puzzles = () => fetch('/data/tenk_puzzle.csv').then(_ => _.text()).then(parsePuzzles)
 
@@ -62,7 +88,6 @@ function clear_progress() {
   postMessage({ t: 'progress' })
 }
 
-let filter: string | undefined = undefined
 
 const filter_puzzles = (_filter?: string) => {
   filter = _filter
@@ -70,20 +95,40 @@ const filter_puzzles = (_filter?: string) => {
 }
 
 const send_puzzles = () => {
+
+
+  if (dirty_patterns) {
+    puzzles.forEach((puzzle, i) => {
+      send_progress(i, puzzles.length)
+      puzzle.has_tags = []
+      patterns.forEach(pattern => {
+        if (hopefox(puzzle.fen, pattern.pattern)) {
+          puzzle.has_tags.push(pattern.name)
+          if (!puzzle.has_tags.includes('has_tag')) {
+            puzzle.has_tags.push('has_tag')
+          }
+        }
+      })
+    })
+    dirty_patterns = false
+  }
+
   let d = filter ? puzzles.filter(yn_filter(filter)) : puzzles
   postMessage({ t: 'puzzles', d})
+  clear_progress()
 }
 
 onmessage = (e) => {
     switch (e.data.t) {
-        case 'filter': {
-            filter_puzzles(e.data.d)
-        }
+      case 'filter': {
+        filter_puzzles(e.data.d)
+      } break
+      case 'patterns': {
+        set_patterns(e.data.d)
+      } break
     }
 
 }
 
-let puzzles = await fetch_puzzles()
-clear_progress()
-send_puzzles()
 
+init()

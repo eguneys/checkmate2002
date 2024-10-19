@@ -9,9 +9,9 @@
     display: flex;
     gap: 0.3em;
 
-    .board,
-    .pattern,
-    .puzzles {
+    & > .board,
+    & > .pattern,
+    & > .puzzles {
         flex: 1;
         border: 1px solid black;
     }
@@ -83,12 +83,10 @@
                     font-size: 0.8em;
                 }
 
-                .has-tags {
-                    flex: 1;
-                }
 
+                .has-tags,
                 .tags {
-                    flex: 1;
+                    flex: 3;
                     display: flex;
                     gap: 0 0.4em;
                     flex-flow: row wrap;
@@ -108,6 +106,71 @@
         .b-wrap {
             display: flex;
             aspect-ratio: 1/1;
+        }
+    }
+
+
+    .pattern {
+        display: flex;
+        flex-flow: column;
+        gap: 1em;
+
+        .list {
+
+            flex: 1;
+            border-bottom: 1px solid gray;
+
+            .pattern {
+                padding: 1em;
+                border-bottom: 1px solid cornflowerblue;
+
+                display: flex;
+                flex-flow: row;
+                justify-content: space-between;
+
+                user-select: none;
+                cursor: pointer;
+
+                &:hover {
+                    background: lightyellow;
+                }
+                &.active {
+
+                    background: yellow;
+                }
+            }
+        }
+
+        .controls {
+            display: flex;
+            flex-flow: column;
+            gap: 0.4em;
+
+            .name {
+                align-self: flex-start;
+                margin-left: 1em;
+            }
+
+            textarea {
+                width: 86px;
+                font-size: 2em;
+                resize: none;
+                align-self: center;
+                justify-self: center;
+            }
+
+            button {
+                margin: 0.2em;
+            }
+
+            .delete {
+                background: red;
+                color: white;
+
+                &:active {
+                    text-decoration: underline;
+                }
+            }
         }
     }
 }

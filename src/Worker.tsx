@@ -1,12 +1,13 @@
 import { Accessor, createContext, createSignal, JSX } from "solid-js"
 import MyWorker from './worker?worker'
-import { Puzzle } from "./puzzles"
+import { Pattern, Puzzle } from "./puzzles"
 
 type MyWorkerType = {
     error: Accessor<string | undefined>,
     progress: Accessor<[number, number] | undefined>,
     puzzles: Accessor<Puzzle[] | undefined>,
-    filter_puzzles: (_?: string) => void
+    filter_puzzles: (_?: string) => void,
+    set_patterns: (_: Pattern[]) => void
 }
 
 export const MyWorkerContext = createContext<MyWorkerType>()
@@ -41,6 +42,9 @@ export const MyWorkerProvider = (props: { children: JSX.Element }) => {
         puzzles,
         filter_puzzles(filter?: string) {
             worker.postMessage({ t: 'filter', d: filter })
+        },
+        set_patterns(patterns: Pattern[]) {
+            worker.postMessage({ t: 'patterns', d: patterns })
         }
     }
 
