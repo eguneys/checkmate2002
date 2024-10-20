@@ -7,7 +7,7 @@ import { INITIAL_FEN } from 'hopefox/fen'
 
 
 
-const Chessboard = (props: { shapes?: DrawShape[], orientation?: Color, movable?: boolean, fen_uci?: [string, string | undefined], doPromotion: Key | undefined, onMoveAfter: (orig: Key, dest: Key) => void, color: Color, dests: Dests }) => {
+const Chessboard = (props: { onShapes: (_: DrawShape[]) => void,  shapes?: DrawShape[], orientation?: Color, movable?: boolean, fen_uci?: [string, string | undefined], doPromotion: Key | undefined, onMoveAfter: (orig: Key, dest: Key) => void, color: Color, dests: Dests }) => {
 
     let board: HTMLElement
     let ground: Api
@@ -27,6 +27,9 @@ const Chessboard = (props: { shapes?: DrawShape[], orientation?: Color, movable?
           events: {
             after: props.onMoveAfter
           }
+        },
+        drawable: {
+          onChange: props.onShapes
         }
       }
       ground = Chessground(board, config)

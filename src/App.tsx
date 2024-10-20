@@ -5,6 +5,10 @@ import { batch, createEffect, createMemo, createSignal, For, mapArray, on, Show,
 import { MyWorkerContext, MyWorkerProvider } from './Worker'
 import { Pattern, Puzzle } from './puzzles'
 import { makePersistedNamespaced } from './persisted'
+import { DrawShape } from 'chessground/draw'
+import { Chess, parseSquare, Square } from 'hopefox'
+import { parseFen } from 'hopefox/fen'
+import { get_king_squares } from 'hopefox/squareSet'
 
 function App() {
   return (<>
@@ -18,11 +22,13 @@ function WithWorker() {
 
   const [selected_fen, set_selected_fen] = createSignal<string | undefined>()
 
+  const [pattern, set_pattern] = createSignal<string | undefined>()
+
   return (<>
   
   <div class='checkmate-2002'>
-      <Board fen={selected_fen()}/>
-      <PatternView />
+      <Board on_pattern={set_pattern} fen={selected_fen()}/>
+      <PatternView pattern={pattern()} />
       <Puzzles on_selected_fen={set_selected_fen}/>
 
 <Progress/>
@@ -126,7 +132,7 @@ const Puzzles = (props: { on_selected_fen: (_: string) => void }) => {
 }
 
 
-const PatternView = () => {
+const PatternView = (props: { pattern?: string }) => {
 
   const { set_patterns } = useContext(MyWorkerContext)!
 
@@ -174,8 +180,20 @@ const PatternView = () => {
     })
   }
 
+
   let $el_pattern_name: HTMLInputElement
   let $el_pattern: HTMLTextAreaElement
+
+  createEffect(on(() => props.pattern, pattern => {
+    if (!$el_pattern || !pattern) {
+      return 
+    }
+
+    $el_pattern.value = pattern
+  }))
+
+
+
 
   return (
     <div class='pattern'>
@@ -197,7 +215,7 @@ const PatternView = () => {
   )
 }
 
-const Board = (props: { fen?: string }) => {
+const Board = (props: { on_pattern: (_: string) => void, fen?: string }) => {
 
   const color = createMemo<Color>(() => 'white')
 
@@ -211,13 +229,73 @@ const Board = (props: { fen?: string }) => {
     }
   }
 
+  const on_shapes = (shapes: DrawShape[]) => {
+
+    let ns: [Square, Square][] = []
+    let os: Square[] = []
+    shapes.map(_ => {
+      if (_.dest === undefined) {
+        os.push(parseSquare(_.orig)!)
+      } else {
+        ns.push([parseSquare(_.orig)!, parseSquare(_.dest)!])
+      }
+    })
+
+
+    if (props.fen) {
+
+      let pos = Chess.fromSetup(parseFen(props.fen).unwrap()).unwrap()
+
+      let king = pos.board[pos.turn].intersect(pos.board.king).singleSquare()!
+
+      let ks = get_king_squares(king)
+
+
+      let pattern = ks.map(ks => {
+        if (!ks) {
+          return `Oo`
+        }
+
+
+        if (os.includes(ks)) {
+          let p = pos.board.get(ks)
+          if (p) {
+
+            let r = 'f' // p.role[0]
+            return `${p.color === pos.turn ? r.toUpperCase() : r}o`
+          }
+        }
+
+        
+        let n = ns.find(_ => _[1] === ks)
+        if (n) {
+          let orig = n[0]
+
+          let p = pos.board.get(orig)
+          if (p) {
+            let new_pos = pos.clone()
+            new_pos.turn = p.color
+            if (new_pos.dests(orig).has(ks)) {
+              return `${p.color === pos.turn ? 'F' : 'f'}n`
+            }
+          }
+        }
+
+        return `Xx`
+      }).join('')
+
+      props.on_pattern(pattern)
+
+    }
+  }
+
   return (
     <div class='board'>
       <div class='buttons'>
         <button>Flip Colors</button>
       </div>
       <div class='b-wrap'>
-        <Chessboard fen_uci={props.fen ? [props.fen, undefined] : undefined} doPromotion={undefined} color={color()} dests={new Map()} onMoveAfter={on_move_after} />
+        <Chessboard onShapes={on_shapes} fen_uci={props.fen ? [props.fen, undefined] : undefined} doPromotion={undefined} color={color()} dests={new Map()} onMoveAfter={on_move_after} />
       </div>
       <div class='fen'>
         <input type='text' value={props.fen}></input> <button onClick={copy_fen}>Copy Fen</button>
