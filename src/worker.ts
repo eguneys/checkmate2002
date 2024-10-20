@@ -112,6 +112,13 @@ const send_puzzles = () => {
           if (!puzzle.has_tags.includes('has_tag')) {
             puzzle.has_tags.push('has_tag')
           }
+          if (puzzle.has_tags.length === 2) {
+            if (!puzzle.has_tags.includes('single_tag')) {
+              puzzle.has_tags.push('single_tag')
+            }
+          } else {
+            puzzle.has_tags = puzzle.has_tags.filter(_ => _ !== 'single_tag')
+          }
         }
       })
     })
