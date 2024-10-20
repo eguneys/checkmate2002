@@ -88,9 +88,9 @@ const Puzzles = (props: { on_selected_fen: (_: string) => void }) => {
 
   const filtered = createMemo(mapArray(() => puzzles(), PuzzleMemo.create))
 
-  const [i_selected, set_i_selected] = createSignal(0)
+  const [id_selected, set_id_selected] = createSignal()
 
-  const selected_fen = createMemo(() => filtered()[i_selected()]?.fen)
+  const selected_fen = createMemo(() => filtered().find(_ => _.id === id_selected())?.fen)
 
   createEffect(on(selected_fen, (fen) => {
     if (fen) {
@@ -117,8 +117,8 @@ const Puzzles = (props: { on_selected_fen: (_: string) => void }) => {
         </div>
         <div class='list'>
       <Show when={filtered()}>{ puzzles => 
-        <For each={puzzles().slice(0, 1000)}>{(puzzle, i) => 
-            <div onClick={() => set_i_selected(i())} class={'puzzle' + (i() === i_selected() ? ' active' : '')}>
+        <For each={puzzles().slice(0, 1000)}>{puzzle => 
+            <div onClick={() => set_id_selected(puzzle.id)} class={'puzzle' + (puzzle.id === id_selected() ? ' active' : '')}>
               <span class='id'><a target="_blank" href={`https://lichess.org/training/${puzzle.id}`}>{puzzle.id}</a></span>
               <span class='has-tags'><For each={puzzle.has_tags}>{tag => <span class='tag'>{tag}</span>}</For></span>
               <span class='tags'><For each={puzzle.tags}>{tag => <span class='tag'>{tag}</span>}</For></span>
