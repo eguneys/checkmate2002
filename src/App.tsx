@@ -168,7 +168,7 @@ const PatternView = (props: { pattern?: string }) => {
 
     batch(() => {
       set_saved_patterns([{name, pattern}, ...saved_patterns().filter(_ => _.name !== name)])
-      set_i_selected_pattern(patterns().length - 1)
+      set_i_selected_pattern(0)
     })
   }
 
@@ -176,7 +176,7 @@ const PatternView = (props: { pattern?: string }) => {
     let name = $el_pattern_name.value
     batch(() => {
       set_saved_patterns([...saved_patterns().filter(_ => _.name !== name)])
-      set_i_selected_pattern(patterns().length - 1)
+      set_i_selected_pattern(0)
     })
   }
 

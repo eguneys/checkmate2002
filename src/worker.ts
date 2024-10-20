@@ -111,10 +111,9 @@ const send_puzzles = () => {
       puzzle.has_tags = {}
       puzzle.has_pattern = {}
       for (let pattern of patterns) {
-        let i_has = has_pattern[pattern.pattern]
-        if (i_has || hopefox(puzzle.fen, pattern.pattern)) {
+        puzzle.has_pattern[pattern.pattern] = true
+        if (!has_pattern[pattern.pattern] && hopefox(puzzle.fen, pattern.pattern)) {
           puzzle.has_tags[pattern.name] = true
-          puzzle.has_pattern[pattern.pattern] = true
           puzzle.has_tags['has_tag'] = true
           if (Object.keys(puzzle.has_tags).length === 2) {
             puzzle.has_tags['single_tag'] = true
