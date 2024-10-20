@@ -1,7 +1,7 @@
 import { hopefox } from 'hopefox'
 import { Chess, parseUci } from "hopefox"
 import { makeFen, parseFen } from "hopefox/fen"
-import { Pattern, Puzzle } from "./puzzles"
+import { Pattern, Puzzle, puzzle_all_tags } from "./puzzles"
 import tenk from './assets/tenk_puzzle.csv?raw'
 
 let puzzles: Puzzle[] = []
@@ -63,9 +63,6 @@ const parsePuzzles = (text: string): Puzzle[] => {
   })
 }
 
-const puzzle_all_tags = (puzzle: Puzzle) => ({...puzzle.tags, ...puzzle.has_tags})
-
-
 const yn_filter = (filter: string) => {
   return (puzzle: Puzzle) => {
     let all_tags = puzzle_all_tags(puzzle)
@@ -108,17 +105,15 @@ const send_puzzles = () => {
       let puzzle = puzzles[i]
       if (i % 500 === 0) send_progress(i, puzzles.length)
       let has_pattern = puzzle.has_pattern
-      puzzle.has_tags = {}
       puzzle.has_pattern = {}
       for (let pattern of patterns) {
         puzzle.has_pattern[pattern.pattern] = true
-        if (!has_pattern[pattern.pattern] && hopefox(puzzle.fen, pattern.pattern)) {
-          puzzle.has_tags[pattern.name] = true
-          puzzle.has_tags['has_tag'] = true
-          if (Object.keys(puzzle.has_tags).length === 2) {
-            puzzle.has_tags['single_tag'] = true
+        if (!has_pattern[pattern.pattern]) {
+          let compute = hopefox(puzzle.fen, pattern.pattern)
+          if (compute) {
+            puzzle.has_tags[pattern.name] = compute
           } else {
-            delete puzzle.has_tags['single_tag']
+            delete puzzle.has_tags[pattern.name]
           }
         }
       }

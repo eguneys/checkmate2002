@@ -3,7 +3,7 @@ import './App.css'
 import Chessboard from './Chessboard'
 import { batch, createEffect, createMemo, createSignal, For, mapArray, on, Show, useContext } from 'solid-js'
 import { MyWorkerContext, MyWorkerProvider } from './Worker'
-import { Pattern, Puzzle } from './puzzles'
+import { Pattern, Puzzle, puzzle_all_tags, puzzle_has_tags } from './puzzles'
 import { makePersistedNamespaced } from './persisted'
 import { DrawShape } from 'chessground/draw'
 import { Chess, parseSquare, Square } from 'hopefox'
@@ -69,11 +69,11 @@ class PuzzleMemo {
   }
 
   get has_tags() {
-    return this.puzzle.has_tags
+    return puzzle_has_tags(this.puzzle)
   }
 
   get all_tags() {
-    return {...this.tags, ...this.has_tags}
+    return puzzle_all_tags(this.puzzle)
   }
 
   private constructor(readonly puzzle: Puzzle) {}
