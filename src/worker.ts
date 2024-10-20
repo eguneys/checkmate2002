@@ -2,6 +2,7 @@ import { hopefox } from 'hopefox'
 import { Chess, parseUci } from "hopefox"
 import { makeFen, parseFen } from "hopefox/fen"
 import { Pattern, Puzzle } from "./puzzles"
+import tenk from './assets/tenk_puzzle.csv?raw'
 
 let puzzles: Puzzle[] = []
 let filter: string | undefined = undefined
@@ -28,7 +29,8 @@ const set_patterns = (ps: Pattern[]) => {
 
 
 
-export const fetch_puzzles = () => fetch('/data/tenk_puzzle.csv').then(_ => _.text()).then(parsePuzzles)
+//export const fetch_puzzles = () => fetch('./data/tenk_puzzle.csv').then(_ => _.text()).then(parsePuzzles)
+const fetch_puzzles = async () => parsePuzzles(tenk)
 
 const parsePuzzles = (text: string): Puzzle[] => {
   let res = text.trim().split('\n')
