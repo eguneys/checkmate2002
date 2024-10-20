@@ -95,6 +95,8 @@ const Puzzles = (props: { on_selected_fen: (_: string) => void }) => {
   createEffect(on(selected_fen, (fen) => {
     if (fen) {
       props.on_selected_fen(fen)
+    } else {
+      set_id_selected(filtered()[0]?.id)
     }
   }))
 
@@ -112,7 +114,7 @@ const Puzzles = (props: { on_selected_fen: (_: string) => void }) => {
   return (
       <div class='puzzles'>
         <div class='filter'>
-          <input value={filter()} onInput={() => on_filter_change($el_filter.value)} ref={_ => $el_filter = _} type="text" placeholder="Filter y_filter _!_ n_filter"></input>
+          <input spellcheck={false} value={filter()} onInput={() => on_filter_change($el_filter.value)} ref={_ => $el_filter = _} type="text" placeholder="Filter y_filter _!_ n_filter"></input>
           <span>{filtered().length}/{10000} Positions</span>
         </div>
         <div class='list'>
@@ -120,7 +122,7 @@ const Puzzles = (props: { on_selected_fen: (_: string) => void }) => {
         <For each={puzzles().slice(0, 1000)}>{puzzle => 
             <div onClick={() => set_id_selected(puzzle.id)} class={'puzzle' + (puzzle.id === id_selected() ? ' active' : '')}>
               <span class='id'><a target="_blank" href={`https://lichess.org/training/${puzzle.id}`}>{puzzle.id}</a></span>
-              <span class='has-tags'><For each={Object.keys(puzzle.has_tags)}>{tag => <span class='tag'>{tag}</span>}</For></span>
+              <span class='has-tags'><For each={Object.keys(puzzle.has_tags).filter(_ => !_.includes('id_'))}>{tag => <span class='tag'>{tag}</span>}</For></span>
               <span class='tags'><For each={Object.keys(puzzle.tags)}>{tag => <span class='tag'>{tag}</span>}</For></span>
             </div>
         }</For>
@@ -158,12 +160,15 @@ const PatternView = (props: { pattern?: string }) => {
     let name = $el_pattern_name.value
     let pattern = $el_pattern.value
 
+    // TODO remove
+    name = 'backrank'
+
     if (!name || name.length < 3 || !pattern || pattern.length !== 18) {
       return false
     }
 
     if (default_patterns.find(_ => _.name === name)) {
-      name += Math.random().toString(16).slice(2, 4)
+      name += Math.random().toString(16).slice(2, 5)
     }
 
     batch(() => {
@@ -199,7 +204,7 @@ const PatternView = (props: { pattern?: string }) => {
 
 
   return (
-    <div class='pattern'>
+    <div class='pattern-view'>
       <div class='list'>
         <For each={patterns()}>{(pattern, i) => 
           <div onClick={() => set_i_selected_pattern(i())} class={"pattern" + (i_selected_pattern() === i() ? ' active': '')}>
@@ -209,6 +214,7 @@ const PatternView = (props: { pattern?: string }) => {
           </div>
         }</For>
       </div>
+      <small class='nb'>{patterns().length} Patterns</small>
       <div class='controls'>
         <input class="name" ref={_ => $el_pattern_name = _} type="text" placeholder="Pattern Name"/>
         <textarea ref={_ => $el_pattern = _ } placeholder="OoOoOoFnFnFnfofofo" class="pattern" spellcheck={false} rows={3} cols={6} maxLength={18}/>
