@@ -45,13 +45,15 @@ const parsePuzzles = (text: string): Puzzle[] => {
     fen = makeFen(pos.toSetup())
 
     let has_tags: string[] = []
+    let has_pattern: string[] = []
 
     return {
       id,
       fen,
       moves,
       tags: tags.split(' '),
-      has_tags
+      has_tags,
+      has_pattern
     }
   })
 }
@@ -64,7 +66,7 @@ const yn_filter = (filter: string) => {
     let all_tags = puzzle_all_tags(puzzle)
     let [y,n] = filter.split('_!_').map(_ => _.trim())
 
-    let ys = y.split(' ')
+    let ys = y === '' ? [] : y.split(' ')
 
     if (n) {
 
@@ -100,10 +102,13 @@ const send_puzzles = () => {
   if (dirty_patterns) {
     puzzles.forEach((puzzle, i) => {
       send_progress(i, puzzles.length)
+      let has_pattern = puzzle.has_pattern
       puzzle.has_tags = []
+      puzzle.has_pattern = []
       patterns.forEach(pattern => {
-        if (hopefox(puzzle.fen, pattern.pattern)) {
+        if (has_pattern.includes(pattern.pattern) || hopefox(puzzle.fen, pattern.pattern)) {
           puzzle.has_tags.push(pattern.name)
+          puzzle.has_pattern.push(pattern.pattern)
           if (!puzzle.has_tags.includes('has_tag')) {
             puzzle.has_tags.push('has_tag')
           }

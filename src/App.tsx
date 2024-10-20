@@ -1,7 +1,7 @@
 import { Color, Key } from 'chessground/types'
 import './App.css'
 import Chessboard from './Chessboard'
-import { batch, createEffect, createMemo, createSignal, For, mapArray, on, onMount, Show, useContext } from 'solid-js'
+import { batch, createEffect, createMemo, createSignal, For, mapArray, on, Show, useContext } from 'solid-js'
 import { MyWorkerContext, MyWorkerProvider } from './Worker'
 import { Pattern, Puzzle } from './puzzles'
 import { makePersistedNamespaced } from './persisted'
@@ -133,7 +133,7 @@ const PatternView = () => {
   const default_patterns = [{ name: 'backrank', pattern: "OoOoOoFnFnFnfofofo" }]
 
   const [saved_patterns, set_saved_patterns] = makePersistedNamespaced<Pattern[]>([], 'patterns')
-  const patterns = createMemo(() => [...default_patterns, ...saved_patterns()])
+  const patterns = createMemo(() => [...saved_patterns(), ...default_patterns])
 
   const [i_selected_pattern, set_i_selected_pattern] = createSignal(0)
 
@@ -161,7 +161,7 @@ const PatternView = () => {
     }
 
     batch(() => {
-      set_saved_patterns([...saved_patterns().filter(_ => _.name !== name), { name, pattern }])
+      set_saved_patterns([{name, pattern}, ...saved_patterns().filter(_ => _.name !== name)])
       set_i_selected_pattern(patterns().length - 1)
     })
   }
@@ -205,6 +205,11 @@ const Board = (props: { fen?: string }) => {
     console.log(orig, dest)
   }
 
+  const copy_fen = () => {
+    if (props.fen) {
+      navigator.clipboard.writeText(props.fen)
+    }
+  }
 
   return (
     <div class='board'>
@@ -213,6 +218,9 @@ const Board = (props: { fen?: string }) => {
       </div>
       <div class='b-wrap'>
         <Chessboard fen_uci={props.fen ? [props.fen, undefined] : undefined} doPromotion={undefined} color={color()} dests={new Map()} onMoveAfter={on_move_after} />
+      </div>
+      <div class='fen'>
+        <input type='text' value={props.fen}></input> <button onClick={copy_fen}>Copy Fen</button>
       </div>
     </div>
   )
