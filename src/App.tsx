@@ -256,7 +256,7 @@ const Board = (props: { on_pattern: (_: string) => void, fen?: string }) => {
 
 
       let pattern = ks.map(ks => {
-        if (!ks) {
+        if (ks === undefined) {
           return `Oo`
         }
 
