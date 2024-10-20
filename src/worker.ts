@@ -118,8 +118,9 @@ const send_puzzles = () => {
     dirty_patterns = false
   }
 
-  let d = filter ? puzzles.filter(yn_filter(filter)) : puzzles
-  postMessage({ t: 'puzzles', d})
+  let all = puzzles
+  let filtered = filter ? puzzles.filter(yn_filter(filter)) : puzzles
+  postMessage({ t: 'puzzles', d: { all, filtered }})
   clear_progress()
 }
 

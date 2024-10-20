@@ -134,9 +134,9 @@ const Puzzles = (props: { on_selected_fen: (_: string) => void }) => {
 
 const PatternView = (props: { pattern?: string }) => {
 
-  const { set_patterns } = useContext(MyWorkerContext)!
+  const { all_puzzles, set_patterns } = useContext(MyWorkerContext)!
 
-  const default_patterns = [{ name: 'backrank', pattern: "OoOoOoFnFnFnfofofo" }]
+  const default_patterns = [{ name: 'backrank', pattern: "OoOoOofnfnfnFoFoFo" }]
 
   const [saved_patterns, set_saved_patterns] = makePersistedNamespaced<Pattern[]>([], 'patterns')
   const patterns = createMemo(() => [...saved_patterns(), ...default_patterns])
@@ -193,6 +193,9 @@ const PatternView = (props: { pattern?: string }) => {
   }))
 
 
+  const has_pattern_nb = (name: string) => {
+    return all_puzzles()?.filter(_ => _.has_tags.includes(name)).length ?? 0
+  }
 
 
   return (
@@ -202,6 +205,7 @@ const PatternView = (props: { pattern?: string }) => {
           <div onClick={() => set_i_selected_pattern(i())} class={"pattern" + (i_selected_pattern() === i() ? ' active': '')}>
             <span class='name'>{pattern.name}</span>
             <span class='value'>{pattern.pattern}</span>
+            <span class='nb'>{has_pattern_nb(pattern.name)}</span>
           </div>
         }</For>
       </div>
@@ -275,6 +279,7 @@ const Board = (props: { on_pattern: (_: string) => void, fen?: string }) => {
           if (p) {
             let new_pos = pos.clone()
             new_pos.turn = p.color
+            new_pos.board.take(king)
             if (new_pos.dests(orig).has(ks)) {
               return `${p.color === pos.turn ? 'F' : 'f'}n`
             }
