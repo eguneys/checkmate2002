@@ -11,7 +11,8 @@
   "dependencies": {
     "@solid-primitives/storage": "^4.2.1",
     "chessground": "^9.1.1",
-    "solid-js": "^1.9.1"
+    "solid-js": "^1.9.1",
+    "hopefox": "link://../hopefox"
   },
   "devDependencies": {
     "typescript": "^5.5.3",

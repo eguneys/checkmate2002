@@ -18,8 +18,8 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
-          repository: 'eguneys/aset'
-          path: aset
+          repository: 'eguneys/hopefox'
+          path: hopefox
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -31,9 +31,9 @@ jobs:
     
       - name: Build dependencies
         run: |
-           cd aset
+           cd hopefox
            pnpm install
-           pnpm bundle
+           pnpm build
 
       - name: Build project
         run: |
