@@ -73,7 +73,7 @@ class PuzzleMemo {
   }
 
   get all_tags() {
-    return [...this.tags, ...this.has_tags]
+    return {...this.tags, ...this.has_tags}
   }
 
   private constructor(readonly puzzle: Puzzle) {}
@@ -120,8 +120,8 @@ const Puzzles = (props: { on_selected_fen: (_: string) => void }) => {
         <For each={puzzles().slice(0, 1000)}>{puzzle => 
             <div onClick={() => set_id_selected(puzzle.id)} class={'puzzle' + (puzzle.id === id_selected() ? ' active' : '')}>
               <span class='id'><a target="_blank" href={`https://lichess.org/training/${puzzle.id}`}>{puzzle.id}</a></span>
-              <span class='has-tags'><For each={puzzle.has_tags}>{tag => <span class='tag'>{tag}</span>}</For></span>
-              <span class='tags'><For each={puzzle.tags}>{tag => <span class='tag'>{tag}</span>}</For></span>
+              <span class='has-tags'><For each={Object.keys(puzzle.has_tags)}>{tag => <span class='tag'>{tag}</span>}</For></span>
+              <span class='tags'><For each={Object.keys(puzzle.tags)}>{tag => <span class='tag'>{tag}</span>}</For></span>
             </div>
         }</For>
       }</Show>
@@ -194,7 +194,7 @@ const PatternView = (props: { pattern?: string }) => {
 
 
   const has_pattern_nb = (name: string) => {
-    return all_puzzles()?.filter(_ => _.has_tags.includes(name)).length ?? 0
+    return all_puzzles()?.filter(_ => _.has_tags[name]).length ?? 0
   }
 
 

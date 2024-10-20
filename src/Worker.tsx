@@ -49,6 +49,7 @@ export const MyWorkerProvider = (props: { children: JSX.Element }) => {
             worker.postMessage({ t: 'filter', d: filter })
         },
         set_patterns(patterns: Pattern[]) {
+            worker.postMessage({t: 'cancel'})
             worker.postMessage({ t: 'patterns', d: patterns })
         }
     }

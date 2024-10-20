@@ -2,9 +2,9 @@ export type Puzzle = {
   id: string,
   fen: string,
   moves: string,
-  tags: string[],
-  has_tags: string[],
-  has_pattern: string[]
+  tags: Record<string, true>,
+  has_tags: Record<string, true>,
+  has_pattern: Record<string, true>
 }
 
 export type Pattern = { name: string, pattern: string }

@@ -36,7 +36,7 @@ const parsePuzzles = (text: string): Puzzle[] => {
   let res = text.trim().split('\n')
   return res.map((_, i) => {
     send_progress(i, res.length)
-    let [id, fen, moves, _a, _b, _c, _d, tags] = _.split(',')
+    let [id, fen, moves, _a, _b, _c, _d, _tags] = _.split(',')
 
     let pos = Chess.fromSetup(parseFen(fen).unwrap()).unwrap()
 
@@ -46,21 +46,24 @@ const parsePuzzles = (text: string): Puzzle[] => {
 
     fen = makeFen(pos.toSetup())
 
-    let has_tags: string[] = []
-    let has_pattern: string[] = []
+    let has_tags: Record<string, true> = {}
+    let has_pattern: Record<string, true> = {}
+
+    let tags: Record<string, true> = {}
+    _tags.split(' ').forEach(_ => tags[_] = true)
 
     return {
       id,
       fen,
       moves,
-      tags: tags.split(' '),
+      tags,
       has_tags,
       has_pattern
     }
   })
 }
 
-const puzzle_all_tags = (puzzle: Puzzle) => [...puzzle.tags, ...puzzle.has_tags]
+const puzzle_all_tags = (puzzle: Puzzle) => ({...puzzle.tags, ...puzzle.has_tags})
 
 
 const yn_filter = (filter: string) => {
@@ -74,12 +77,12 @@ const yn_filter = (filter: string) => {
 
       let ns = n.split(' ')
 
-      if (all_tags.find(_ => ns.includes(_))) {
+      if (ns.find(_ => all_tags[_])) {
         return false
       }
     }
 
-    return ys.every(y => all_tags.includes(y))
+    return ys.every(y => all_tags[y])
   }
 
 }
@@ -100,30 +103,27 @@ const filter_puzzles = (_filter?: string) => {
 
 const send_puzzles = () => {
 
-
   if (dirty_patterns) {
-    puzzles.forEach((puzzle, i) => {
-      send_progress(i, puzzles.length)
+    for (let i = 0; i < puzzles.length; i++) {
+      let puzzle = puzzles[i]
+      if (i % 500 === 0) send_progress(i, puzzles.length)
       let has_pattern = puzzle.has_pattern
-      puzzle.has_tags = []
-      puzzle.has_pattern = []
-      patterns.forEach(pattern => {
-        if (has_pattern.includes(pattern.pattern) || hopefox(puzzle.fen, pattern.pattern)) {
-          puzzle.has_tags.push(pattern.name)
-          puzzle.has_pattern.push(pattern.pattern)
-          if (!puzzle.has_tags.includes('has_tag')) {
-            puzzle.has_tags.push('has_tag')
-          }
-          if (puzzle.has_tags.length === 2) {
-            if (!puzzle.has_tags.includes('single_tag')) {
-              puzzle.has_tags.push('single_tag')
-            }
+      puzzle.has_tags = {}
+      puzzle.has_pattern = {}
+      for (let pattern of patterns) {
+        let i_has = has_pattern[pattern.pattern]
+        if (i_has || hopefox(puzzle.fen, pattern.pattern)) {
+          puzzle.has_tags[pattern.name] = true
+          puzzle.has_pattern[pattern.pattern] = true
+          puzzle.has_tags['has_tag'] = true
+          if (Object.keys(puzzle.has_tags).length === 2) {
+            puzzle.has_tags['single_tag'] = true
           } else {
-            puzzle.has_tags = puzzle.has_tags.filter(_ => _ !== 'single_tag')
+            delete puzzle.has_tags['single_tag']
           }
         }
-      })
-    })
+      }
+    }
     dirty_patterns = false
   }
 
